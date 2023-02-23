@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-cut = False
 
 
 def encode(source, amplitudeResolution, angularResolution, isCircular):
@@ -18,13 +17,7 @@ def encode(source, amplitudeResolution, angularResolution, isCircular):
     """
     polar_image = transform2Poles(source, isCircular)
     encodedImage = setResolution(
-        polar_image, angularResolution, amplitudeResolution)
-    cv2.imshow("Image", source)
-
-    cv2.imshow("Polar Image", polar_image)
-    cv2.imshow("Encoded Image", encodedImage)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+        polar_image, amplitudeResolution, angularResolution)
     return encodedImage
 
 
@@ -67,7 +60,3 @@ def setResolution(image, amplitudeResolution, AngularResolution):
     newDim = (amplitudeResolution, AngularResolution)
     resizedImg = cv2.resize(image, newDim, interpolation=cv2.INTER_AREA)
     return resizedImg
-
-
-im = cv2.imread("earth-icon.jpg")
-encode(im, 100, 80)
