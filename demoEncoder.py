@@ -12,7 +12,7 @@ from time import sleep
 maxAmp = 50
 angleSlices = 200
 ledSize = 1
-offset = 1
+offset = 0
 im = cv2.imread("thomas more.png")
 polar = PictureEncoder.encode(im, maxAmp, angleSlices, False)
 cv2.imwrite("polar.jpg", polar)
