@@ -67,7 +67,7 @@ def setResolution(image, amplitudeResolution, AngularResolution):
     return resizedImg
 
 
-def toBitmap(image, bigEndian=True, custom=True, serial=1):
+def toBitmap(image, bigEndian=True, custom=False, serial=1):
     assert image.shape[1] % serial == 0, f"image shape {image.shape} is not serializable with {serial}"
     bits = np.array([[[list('{0:08b}'.format(num))
                     for num in color] for color in row] for row in image])
@@ -83,11 +83,13 @@ def toBitmap(image, bigEndian=True, custom=True, serial=1):
     custom_arr = np.array(
         [2, 4, 16, 17, 5, 18, 19, 20, 21, 22, 23, 27, 26, 25])
     for i, row in enumerate(result):
-        if (i < len(result)-1):
-            continue
         registers = []
+        # if (i < len(result)-1):
+        #     continue
+        
         for j in range(result.shape[1]):
-            print(f"{row[j][0]} {row[j][1]} {row[j][2]}")
+            pass
+            # print(f"{row[j][0]} {row[j][1]} {row[j][2]}")
 
         for k in color_order:
             arr = np.arange(result.shape[1]//serial)
@@ -100,12 +102,12 @@ def toBitmap(image, bigEndian=True, custom=True, serial=1):
             for s in range(serial):
                 [registers.append(np.dot(row[s::serial, k, x], 2 ** arr))
                     for x in range(8)]
-        bitmap.append(np.array(registers))
-        print(np.array(registers).shape)
-        print(np.array(registers))
-        print(custom_arr[:2])
-        print(np.array([x for x in range(max(custom_arr[:2])+1)]))
-        print(np.array([2**x for x in range(max(custom_arr[:2])+1)]))
+        bitmap.append(registers)
+        # print(np.array(registers).shape)
+        # print(np.array(registers))
+        # print(custom_arr[:2])
+        # print(np.array([x for x in range(max(custom_arr[:2])+1)]))
+        # print(np.array([2**x for x in range(max(custom_arr[:2])+1)]))
 
     return bitmap
 
@@ -123,4 +125,5 @@ def calc(tot_leds, aantal_pinne, freq, aspect):
     return (ser_leds*32+64)*freq*slices
 
 
-print(f"{calc(tot_leds=14, aantal_pinne=14, freq=10, aspect=3)/1000} Kbps \nMax = 500 Kbps")
+# print(f"{calc(tot_leds=14, aantal_pinne=14, freq=10, aspect=3)/1000} Kbps \nMax = 500 Kbps")
+print(encode(cv2.imread("kul.png"),30,100,True,True))
