@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import json
 
 
 def encode(source, amplitudeResolution, angularResolution, isCircular, bitmap=False):
@@ -67,14 +68,14 @@ def setResolution(image, amplitudeResolution, AngularResolution):
     return resizedImg
 
 
-def toBitmap(image, bigEndian=True, custom=False, serial=1):
+def toBitmap(image, bigEndian=True, custom=True, serial=2):
     assert image.shape[1] % serial == 0, f"image shape {image.shape} is not serializable with {serial}"
     bits = np.array([[[list('{0:08b}'.format(num))
                     for num in color] for color in row] for row in image])
     print(bits)
 
     # Convert the bits to integers and reshape to 3D
-    result = bits.astype(int).reshape(
+    result = bits.astype(np.int64).reshape(
         (image.shape[0], image.shape[1], image.shape[2], -1))
     print(result.shape)
     print(result)
@@ -96,7 +97,7 @@ def toBitmap(image, bigEndian=True, custom=False, serial=1):
             if bigEndian:
                 arr = np.arange(result.shape[1]//serial-1, -1, -1)
             if custom:
-                arr = custom_arr[:2]
+                arr = custom_arr#[:2]
                 assert arr.shape[0] == image.shape[
                     1]//serial, f"size of register index({arr.shape[0]}) is not size of parralel leds({image.shape[1]//serial})"
             for s in range(serial):
@@ -126,4 +127,12 @@ def calc(tot_leds, aantal_pinne, freq, aspect):
 
 
 # print(f"{calc(tot_leds=14, aantal_pinne=14, freq=10, aspect=3)/1000} Kbps \nMax = 500 Kbps")
-print(encode(cv2.imread("kul.png"),30,100,True,True))
+lol = encode(cv2.imread("kul.png"),50,100,True,True)
+with open("98_leds_100_slices_7_para.txt","w") as f:
+    f.write(str(lol))
+print("[")
+for i,v in enumerate(lol):
+    print(v,end=",\n")
+print("]")
+print(len(lol))
+print(len(lol[0]))
