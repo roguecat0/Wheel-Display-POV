@@ -3,7 +3,7 @@ import numpy as np
 import json
 
 
-def encode(source, amplitudeResolution, angularResolution, isCircular, bitmap=False):
+def encode(source, amplitudeResolution=98, angularResolution=50, isCircular=True, bitmap=False):
     """ Takes an image and returns the Polar
     representation with the preffered
     amplitude and angular dimensions
@@ -68,53 +68,37 @@ def setResolution(image, amplitudeResolution, AngularResolution):
     return resizedImg
 
 
-def toBitmap(image, bigEndian=True, custom=True, serial=2):
+def toBitmap(image, bigEndian=True, custom=True, serial=7):
     assert image.shape[1] % serial == 0, f"image shape {image.shape} is not serializable with {serial}"
     bits = np.array([[[list('{0:08b}'.format(num))
                     for num in color] for color in row] for row in image])
-    print(bits)
+    # print(bits)
 
     # Convert the bits to integers and reshape to 3D
     result = bits.astype(np.int64).reshape(
         (image.shape[0], image.shape[1], image.shape[2], -1))
     print(result.shape)
-    print(result)
+    # print(result)
     bitmap = []
-    color_order = [0, 1, 2]  # [1, 0, 2]
+    color_order = [2, 1, 0]
     custom_arr = np.array(
-        [2, 4, 16, 17, 5, 18, 19, 20, 21, 22, 23, 27, 26, 25])
+        [2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     for i, row in enumerate(result):
         registers = []
-        # if (i < len(result)-1):
-        #     continue
-        
         for j in range(result.shape[1]):
             pass
             # print(f"{row[j][0]} {row[j][1]} {row[j][2]}")
 
         for k in color_order:
-            arr = np.arange(result.shape[1]//serial)
-            if bigEndian:
-                arr = np.arange(result.shape[1]//serial-1, -1, -1)
             if custom:
-                arr = custom_arr#[:2]
-                assert arr.shape[0] == image.shape[
-                    1]//serial, f"size of register index({arr.shape[0]}) is not size of parralel leds({image.shape[1]//serial})"
+                arr = custom_arr
+                assert arr.shape[0] == image.shape[1]//serial, f"size of register index({arr.shape[0]}) is not size of parralel leds({image.shape[1]//serial})"
             for s in range(serial):
-                [registers.append(np.dot(row[s::serial, k, x], 2 ** arr))
-                    for x in range(8)]
+                [registers.append(np.dot(row[s::serial, k, x], 2 ** arr)) for x in range(8)]
         bitmap.append(registers)
-        # print(np.array(registers).shape)
-        # print(np.array(registers))
-        # print(custom_arr[:2])
-        # print(np.array([x for x in range(max(custom_arr[:2])+1)]))
-        # print(np.array([2**x for x in range(max(custom_arr[:2])+1)]))
+    np.savetxt('array.txt', bitmap, fmt='%d', delimiter=',', newline='},\n{', header=f'uint32_t image[72][{7*8*3}] = ' + '{\n', footer='};')
 
     return bitmap
-
-
-# source = cv2.imread("kul.png")
-# encode(source, 2, 3, True, True)
 def calc(tot_leds, aantal_pinne, freq, aspect):
 
     ser_leds = int(np.round(tot_leds/aantal_pinne))
@@ -125,14 +109,18 @@ def calc(tot_leds, aantal_pinne, freq, aspect):
     print(f"Aantal Slices {slices}")
     return (ser_leds*32+64)*freq*slices
 
+def main():
+    ROTATE = True
+    BITMAP_ONLY = True
+    CIRCLE_IMG = True
+    SLICES = 72 # angular resolution
+    image = cv2.imread("kuleuven.png")
+    
+    if ROTATE:
+        image = cv2.rotate(image,cv2.ROTATE_90_CLOCKWISE)
+    if BITMAP_ONLY:
+        toBitmap(image, bigEndian=True, custom=True, serial=7)
+    else:
+        encode(image,angularResolution=SLICES,isCircular=CIRCLE_IMG,bitmap=True)
 
-# print(f"{calc(tot_leds=14, aantal_pinne=14, freq=10, aspect=3)/1000} Kbps \nMax = 500 Kbps")
-lol = encode(cv2.imread("kul.png"),50,100,True,True)
-with open("98_leds_100_slices_7_para.txt","w") as f:
-    f.write(str(lol))
-print("[")
-for i,v in enumerate(lol):
-    print(v,end=",\n")
-print("]")
-print(len(lol))
-print(len(lol[0]))
+main()
