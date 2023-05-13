@@ -70,31 +70,31 @@ def setResolution(image, amplitudeResolution, AngularResolution):
 
 def toBitmap(image, bigEndian=True, custom=True, serial=7):
     assert image.shape[1] % serial == 0, f"image shape {image.shape} is not serializable with {serial}"
+    aantal_leds = image.shape[1]
+    parallel_groups = aantal_leds / serial
     bits = np.array([[[list('{0:08b}'.format(num))
                     for num in color] for color in row] for row in image])
-    # print(bits)
 
     # Convert the bits to integers and reshape to 3D
-    result = bits.astype(np.int64).reshape(
-        (image.shape[0], image.shape[1], image.shape[2], -1))
-    print(result.shape)
-    # print(result)
+    result = bits.astype(np.int64)
     bitmap = []
-    color_order = [2, 1, 0]
+    color_order = [0, 1, 2]
     custom_arr = np.array(
-        [2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+        [12, 13, 14, 15, 16, 11, 10, 9, 8, 7, 6, 5, 4, 2])
     for i, row in enumerate(result):
         registers = []
         for j in range(result.shape[1]):
             pass
             # print(f"{row[j][0]} {row[j][1]} {row[j][2]}")
-
-        for k in color_order:
+    
+        #for k in color_order:
+        for s in range(serial):
             if custom:
-                arr = custom_arr
+                arr = np.flip(custom_arr)
                 assert arr.shape[0] == image.shape[1]//serial, f"size of register index({arr.shape[0]}) is not size of parralel leds({image.shape[1]//serial})"
-            for s in range(serial):
-                [registers.append(np.dot(row[s::serial, k, x], 2 ** arr)) for x in range(8)]
+            #for s in range(serial):
+            for k in color_order:
+                [(registers.append(np.dot(row[s::serial, k, x], 2 ** arr))) for x in range(8)]
         bitmap.append(registers)
     np.savetxt('array.txt', bitmap, fmt='%d', delimiter=',', newline='},\n{', header=f'uint32_t image[72][{7*8*3}] = ' + '{\n', footer='};')
 
@@ -110,11 +110,11 @@ def calc(tot_leds, aantal_pinne, freq, aspect):
     return (ser_leds*32+64)*freq*slices
 
 def main():
-    ROTATE = True
-    BITMAP_ONLY = True
+    ROTATE = False
+    BITMAP_ONLY = False
     CIRCLE_IMG = True
-    SLICES = 72 # angular resolution
-    image = cv2.imread("kuleuven.png")
+    SLICES = 700 # angular resolution
+    image = cv2.imread("Naamloos.png")
     
     if ROTATE:
         image = cv2.rotate(image,cv2.ROTATE_90_CLOCKWISE)
