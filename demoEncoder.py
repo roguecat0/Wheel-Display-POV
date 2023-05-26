@@ -3,12 +3,9 @@ import cv2
 import numpy as np
 from time import sleep
 
-# cv2.imshow("Image", source)
 
-# cv2.imshow("Polar Image", polar_image)
-# cv2.imshow("Encoded Image", encodedImage)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+# simulatie om aant te tonen dat de encoder werkt
+
 maxAmp = 50
 angleSlices = 200
 ledSize = 1
@@ -17,9 +14,6 @@ im = cv2.imread("thomas more.png")
 polar = PictureEncoder.encode(im, maxAmp, angleSlices, False)
 cv2.imwrite("polar.jpg", polar)
 print(polar)
-# cv2.imshow("Encoded Image", polar)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
 
 
 def pol2cart(rho, phi):

@@ -68,10 +68,17 @@ def setResolution(image, amplitudeResolution, AngularResolution):
     return resizedImg
 
 
-def toBitmap(image, bigEndian=True, custom=True, serial=7):
+def toBitmap(image, serial=7):
+    """transforms image to a format wich is easily read by the esp
+
+    Args:
+        image (np.array): Image
+        serial (int): amount of leds in serie on the pov display
+
+    Returns:
+        List(List(int)): Bitmap 2D list of registe value
+    """
     assert image.shape[1] % serial == 0, f"image shape {image.shape} is not serializable with {serial}"
-    aantal_leds = image.shape[1]
-    parallel_groups = aantal_leds / serial
     bits = np.array([[[list('{0:08b}'.format(num))
                     for num in color] for color in row] for row in image])
 
@@ -81,46 +88,37 @@ def toBitmap(image, bigEndian=True, custom=True, serial=7):
     color_order = [0, 1, 2]
     custom_arr = np.array(
         [12, 13, 14, 15, 16, 11, 10, 9, 8, 7, 6, 5, 4, 2])
+    arr = np.flip(custom_arr)
+    assert arr.shape[0] == image.shape[
+        1]//serial, f"size of register index({arr.shape[0]}) is not size of parralel leds({image.shape[1]//serial})"
     for i, row in enumerate(result):
         registers = []
         for j in range(result.shape[1]):
             pass
-            # print(f"{row[j][0]} {row[j][1]} {row[j][2]}")
-    
-        #for k in color_order:
         for s in range(serial):
-            if custom:
-                arr = np.flip(custom_arr)
-                assert arr.shape[0] == image.shape[1]//serial, f"size of register index({arr.shape[0]}) is not size of parralel leds({image.shape[1]//serial})"
-            #for s in range(serial):
             for k in color_order:
-                [(registers.append(np.dot(row[s::serial, k, x], 2 ** arr))) for x in range(8)]
+                [(registers.append(np.dot(row[s::serial, k, x], 2 ** arr)))
+                 for x in range(8)]
         bitmap.append(registers)
-    np.savetxt('array.txt', bitmap, fmt='%d', delimiter=',', newline='},\n{', header=f'uint32_t image[72][{7*8*3}] = ' + '{\n', footer='};')
-
+    np.savetxt('array.txt', bitmap, fmt='%d', delimiter=',',
+               newline='},\n{', header=f'uint32_t image[72][{7*8*3}] = ' + '{\n', footer='};')
     return bitmap
-def calc(tot_leds, aantal_pinne, freq, aspect):
 
-    ser_leds = int(np.round(tot_leds/aantal_pinne))
-
-    tot_leds = ser_leds*aantal_pinne
-    print(f"Aantal Leds {tot_leds}")
-    slices = int(2*np.pi*tot_leds / aspect)
-    print(f"Aantal Slices {slices}")
-    return (ser_leds*32+64)*freq*slices
 
 def main():
     ROTATE = False
     BITMAP_ONLY = False
     CIRCLE_IMG = True
-    SLICES = 700 # angular resolution
+    SLICES = 700  # angular resolution
     image = cv2.imread("Naamloos.png")
-    
+
     if ROTATE:
-        image = cv2.rotate(image,cv2.ROTATE_90_CLOCKWISE)
+        image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
     if BITMAP_ONLY:
         toBitmap(image, bigEndian=True, custom=True, serial=7)
     else:
-        encode(image,angularResolution=SLICES,isCircular=CIRCLE_IMG,bitmap=True)
+        encode(image, angularResolution=SLICES,
+               isCircular=CIRCLE_IMG, bitmap=True)
+
 
 main()
