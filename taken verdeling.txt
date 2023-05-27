@@ -1,0 +1,13 @@
+Tevon:
+Python afbeelding encodering
+Python communicatie
+Applicatie
+
+Jannes:
+Kotlin communicatie
+ESP communicatie
+
+Arthur:
+PCB design
+POV-display aansturing
+Behuizing

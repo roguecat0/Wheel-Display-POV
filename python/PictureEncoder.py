@@ -100,17 +100,17 @@ def toBitmap(image, serial=7):
                 [(registers.append(np.dot(row[s::serial, k, x], 2 ** arr)))
                  for x in range(8)]
         bitmap.append(registers)
-    np.savetxt('array.txt', bitmap, fmt='%d', delimiter=',',
-               newline='},\n{', header=f'uint32_t image[72][{7*8*3}] = ' + '{\n', footer='};')
+    np.savetxt(f'array_{len(bitmap)}.txt', bitmap, fmt='%d', delimiter=',',
+               newline='},\n{', header=f'uint32_t image[{len(bitmap)}][{7*8*3}] = ' + '{\n', footer='};')
     return bitmap
 
 
 def main():
-    ROTATE = False
+    ROTATE = True
     BITMAP_ONLY = False
     CIRCLE_IMG = True
-    SLICES = 700  # angular resolution
-    image = cv2.imread("Naamloos.png")
+    SLICES = 500  # angular resolution
+    image = cv2.imread("kul.png")
 
     if ROTATE:
         image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
