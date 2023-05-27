@@ -10,7 +10,6 @@ String header;
 AsyncWebServer server(80);    
 AsyncWebSocket ws("/ws");
 
-
 #define SLICES 300
 #define LEDS 7
 #define BITS 24
@@ -20,6 +19,7 @@ AsyncWebSocket ws("/ws");
 #define CLK_MASK 0b10  //(GPIO 1)
 
 #define START_SLICE 75
+volatile unsigned int counter = 0;
 
 volatile uint16_t curr_slice = START_SLICE;
 
@@ -110,12 +110,24 @@ void IRAM_ATTR draw_leds() {
     }
   curr_slice++;
   curr_slice %= SLICES;
+  counter++;
 }
 
+
+uint64_t alarmTime = 1000;
+hw_timer_t * timer1 = NULL;
+hw_timer_t * timer2 = NULL;
 
 void IRAM_ATTR calculate_time(){
-  curr_slice = START_SLICE;
+  if(counter >= 20){
+    uint64_t new_time = timerRead(timer1);
+    timerRestart(timer1);
+    timerAlarmWrite(timer2, new_time/SLICES, true);
+    curr_slice = START_SLICE;
+    counter = 0;
+  }
 }
+
 
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {  //verwerken websocket bericht
   const size_t capacity = len;
@@ -153,13 +165,17 @@ void  initWebSocket() {
   server.addHandler(&ws);
 }
 
-
-
 void setup() {
   WiFi.mode(WIFI_AP);
   WiFi.softAP(ssid, password);
   initWebSocket();
   server.begin();
+  
+  timer1 = timerBegin(1, 400, true);
+  timer2 = timerBegin(2, 400, true);
+  timerAttachInterrupt(timer2, &draw_leds, true);
+  timerAlarmWrite(timer2, alarmTime, true);
+  timerAlarmEnable(timer2);
   
   REG_WRITE(GPIO_ENABLE_REG, PIN_MASK | CLK_MASK);
   delay(1000);
@@ -167,7 +183,5 @@ void setup() {
   attachInterrupt(17, calculate_time, FALLING);
 }
 
-void IRAM_ATTR loop(){
-  draw_leds();
-  wait_for(WAIT*7000);
+void loop(){
 }
